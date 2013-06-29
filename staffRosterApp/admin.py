@@ -8,7 +8,6 @@ from django.contrib.auth.admin import UserAdmin
 from staffRosterApp.models import *    
 
 
-admin.site.register(HoursAvailable)
 
 
 # Add the employee details to the create user form in

@@ -15,20 +15,105 @@
 		<script type='text/javascript' src="{% static 'staffRosterApp/jquery/jquery-1.9.1.min.js' %}"></script>
 		<script type='text/javascript' src="{% static 'staffRosterApp/jquery/jquery-ui-1.10.2.custom.min.js' %}"></script>
 		<script type='text/javascript' src="{% static 'staffRosterApp/fullcalendar/fullcalendar.min.js' %}"></script>
+		
+
 
 		<script>
-			// Sample code taken from full calendar documentation and modified
 			$(document).ready(function() {
-			
 			// Security block to prevent cross site forgery
 		 $(function () {
-				csrftoken =  document.getElementsByName('csrfmiddlewaretoken')[0].value
+
+				csrftoken =  document.getElementsByName('csrfmiddlewaretoken')[0].value;
 		        $.ajaxSetup({
-		            headers: { "X-CSRFToken": csrftoken }
-		    });
-		});
+		            headers: { "X-CSRFToken"
+					: csrftoken }
+					});
+					});
 
+					/* Generate unique id */
+					function getUniqueId() {
 
+						//Generate unique id
+						return new Date().getTime() + Math.floor(Math.random()) * 100;
+					}
+					
+					function testCall(){
+						alert('test call from resize event worked!');
+					}
+					
+					
+					
+					function processDropCallback(date,allday,elementName){						
+						//default event duration in SECONDS	
+						defaultEventDuration = 3600
+						// retrieve the dropped element's stored Event Object
+						var EventObject = $('#'+elementName).data('eventObject');
+
+						EventObject.eventid = getUniqueId();
+						// we need to copy it, so that multiple events don't have a reference to the same object
+						var copiedEventObject = $.extend({}, EventObject);		
+								
+						// Set start date  it the date+time we dropped object onto
+						copiedEventObject.start = date;	
+						//Set end datetime
+						//getTime returns milliseconds so we divide by 1000 to get seconds				
+					 	copiedEventObject.end= ((date.getTime() /1000) + defaultEventDuration); // put your desired end time here
+						copiedEventObject.allDay = false;  // No requirement for all day events 
+						copiedEventObject.eventid = EventObject.eventid
+						
+						// render the event on the calendar
+						// the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
+						$('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+
+						alert('date format for drop function is end ' + copiedEventObject.end + '  start ' + copiedEventObject.start)
+				
+						//Post to server to create shift in DB
+						$.ajax({
+							type : "POST",
+							url : "/roster/updateRoster/",											
+							data : {title :copiedEventObject.title ,
+									start : copiedEventObject.start ,
+									end : copiedEventObject.end ,
+									firstname : copiedEventObject.firstName ,
+									lastname  :  copiedEventObject.lastName,
+									eventid: copiedEventObject.eventid},
+								
+
+							success : function(data) {
+								alert('ajax success - updating roster on drop');
+							},
+							error : function(XMLHttpRequest, textStatus, errorThrown) {
+								alert("Error updating roster, Please contact site admin - Ajax error:" + errorThrown);
+							}, 
+						});				
+					}
+					
+					function processEventResizeOrDrop(event){
+						var EventObject = event;
+						
+						alert('resize function event id is ' + EventObject.eventid);
+						alert('date format for resize function is end ' + EventObject.end + '  start ' + EventObject.start)
+
+						$.ajax({
+							type : "POST",
+							url : "/roster/updateRoster/",											
+							data : {start : EventObject.start ,
+									end : EventObject.end ,
+									eventid: EventObject.eventid},							
+
+							success : function(data) {
+								alert('ajax success - Editing roster on resize or drop ');
+							},
+							error : function(XMLHttpRequest, textStatus, errorThrown) {
+								alert("Error updating roster, Please contact site admin - Ajax error:" + errorThrown);
+							}, 
+						});				
+
+						$('#calendar').fullCalendar('rerenderEvents');
+						
+					}
+
+			// Modified from demo found at arshaw.com/fullcalendar
 
 				/* initialize the external events
 				 -----------------------------------------------------------------*/
@@ -39,6 +124,8 @@
 					// it doesn't need to have a start or end
 					var eventObject = {
 						title : $.trim($(this).text()) , // use the element's text as the event title
+						firstName : $(this).attr('firstName'),
+						lastName : $(this).attr('lastName'),
 					};
 
 					// store the Event Object in the DOM element so we can get to it later
@@ -54,71 +141,31 @@
 				});
 
 				/* initialize the calendar
-				 -----------------------------------------------------------------*/
-
+				 -----------------------------------------------------------------*/				
+				
+			 
 				$('#calendar').fullCalendar({
+				    events: '/roster/jsonfeed/',
 					header : {
 						left : 'prev,next today',
 						center : 'title',
 						right : 'agendaWeek,agendaDay'
 					},
-					// events: {{ eventsDictionary }},
 					defaultView : 'agendaWeek',
-					editable : true,
-					droppable : true, // this allows things to be dropped onto the calendar !!!
-					drop : function(date, allDay) {// this function is called when something is dropped
+					{% if security == 'manager' %}
+						editable : true,
+						droppable : true, // this allows things to be dropped onto the calendar !!!
+					{% endif %}
 
-						// retrieve the dropped element's stored Event Object
-						var originalEventObject = $(this).data('eventObject');
 
-						// we need to copy it, so that multiple events don't have a reference to the same object
-						var copiedEventObject = $.extend({}, originalEventObject);
 
-				
-						// assign it the date that was reported
-						var startDate = new Date(date);  //Copy passed in date
-						//TODO FORMAT DATE SO IT PASSES  VALIDATION + MEETS DU
-						copiedEventObject.start = startDate;			
-						copiedEventObject.end = new Date(startDate.setHours(startDate.getHours()+1)); //
-						copiedEventObject.allDay = false;  // No requirement for all day events 
-						
-						
-
-						// render the event on the calendar
-						// the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
-						$('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
-
-						//TODO REMOVE ME
-						// is the "remove after drop" checkbox checked?
-						if ($('#drop-remove').is(':checked')) {
-							// if so, remove the element from the "Draggable Events" list
-							$(this).remove();
-						}
-
-						// Store the new event in plain object
-						alert('before the ajax ');
-						//TODO some logic to save to DB
-						$.ajax({
-							type : "POST",
-							url : "/roster/updateRoster/",											
-							data : {staffName :copiedEventObject.title ,
-									allDay : copiedEventObject.allDay,
-									start : copiedEventObject.start ,
-									end : copiedEventObject.end},
-
-							success : function(data) {
-								alert("Congratulations! AJAX WORKS!");
-							},
-							error : function(XMLHttpRequest, textStatus, errorThrown) {
-								alert("Ajax failed again...");
-								alert (errorThrown)
-							}, 
-						});
-						alert('after the ajax ');
-						//Prevent further form processing and screen reload
-						return false;
-
-					}
+						/* On item drop*/
+					drop: function(date, allDay) { elementName =$(this).attr('id');
+						alert ("ID " +elementName);
+						processDropCallback(date,allDay,elementName);},
+					//End Drop callback
+					eventResize: function(event) { processEventResizeOrDrop(event) } ,
+					eventDrop: function(event) { processEventResizeOrDrop(event) } ,
 				});
 
 			});
@@ -182,28 +229,26 @@
 
 	<body>
 		<div id='wrap'>
-
+			<h1>Security level: {{ security }}</h1>
 			<div id='external-events'>
-				<h4>Draggable Events</h4>
-				<div class='external-event'>
-					manager00
-				</div>
-				<div class='external-event'>
-					Bob james
-				</div>
-				<div class='external-event'>
-					Mr Anderson
-				</div>
-				<div class='external-event'>
-					Fuzzy
-				</div>
-				<div class='external-event'>
-					Lilu
-				</div>
-				<p>
-					<input type='checkbox' id='drop-remove' />
-					<label for='drop-remove'>remove after drop</label>
-				</p>
+			{% if employees %}
+				{% if security == 'manager' %}
+					{% for employee in employees %}
+	    				<div id={{employee.firstName}}{{employee.lastName}} class='external-event' firstName = {{employee.firstName}} lastName = {{employee.lastName}} >
+							{{employee.firstName}} {{employee.lastName}}
+						</div>
+					{% endfor %}
+				{% endif %}
+				{% if security == 'staffMember' %}
+					<div id={{employees.firstName}}{{employees.lastName}} class='external-event' firstName = {{employees.firstName}} lastName = {{employees.lastName}} >
+						{{employees.firstName}} {{employees.lastName}}
+					</div>
+				{% endif %}
+				
+			{% else %}
+   			 <h1>No employees available<h1>
+			{% endif %}
+
 			</div>
 			{% csrf_token %}
 			<div id='calendar'></div>
