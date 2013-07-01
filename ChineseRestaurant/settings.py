@@ -1,9 +1,13 @@
-# Django settings for ChinestRestaurant project.
+# Django settings for ChineseRestaurant project.
 ############################################
 # Code added while setting up statics dirs manually
 ########################
 import os
+
 PROJECT_DIR = os.path.dirname(__file__)
+#Site root is where the django project is stored
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+
 #########################################
 
 DEBUG = True
@@ -18,7 +22,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'C:\\Users\\Seb\\My Documents\\Aptana Studio 3 Workspace\\ChinestRestaurant\\restaurantInfo.db',                      # Or path to database file if using sqlite3.
+        'NAME': 'C:\\Users\\Seb\\My Documents\\Aptana Studio 3 Workspace\\ChineseRestaurant\\restaurantInfo.db',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': '',
         'PASSWORD': '',
@@ -56,12 +60,12 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = os.path.join(SITE_ROOT, 'media')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = ''
+MEDIA_URL = "media/"
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -77,10 +81,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    ##################################################
-    #     PROJECT DIR - MANUALLY DEFINED AT TOP      #
-    ##################################################
     os.path.join(PROJECT_DIR, 'static'),
     
 )
@@ -113,10 +113,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'ChinestRestaurant.urls'
+ROOT_URLCONF = 'ChineseRestaurant.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'ChinestRestaurant.wsgi.application'
+WSGI_APPLICATION = 'ChineseRestaurant.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -132,6 +132,10 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'staffRosterApp',
+    'menuApp',
+    'onlineOrderingApp',
+    'feedbackApp',
+    'tableBookingApp',
     # Uncomment the next line to enable the admin:
      'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
