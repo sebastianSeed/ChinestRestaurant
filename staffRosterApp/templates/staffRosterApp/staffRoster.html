@@ -10,17 +10,25 @@
 		and then in the STATICFILES_DIRS  defined in settings-->
 		{% load staticfiles %}
 		<link rel='stylesheet' type='text/css' href="{% static 'staffRosterApp/fullcalendar/fullcalendar.css' %}" />
-		<link rel='stylesheet' type='text/css' href="{% static 'staffRosterApp/fullcalendar/fullcalendar.print.css' %}" media='print' />
+		<link  rel='stylesheet' type='text/css' href="{% static 'staffRosterApp/fullcalendar/fullcalendar.print.css' %}" media='print' />
+
 
 		<script type='text/javascript' src="{% static 'staffRosterApp/jquery/jquery-1.9.1.min.js' %}"></script>
 		<script type='text/javascript' src="{% static 'staffRosterApp/jquery/jquery-ui-1.10.2.custom.min.js' %}"></script>
 		<script type='text/javascript' src="{% static 'staffRosterApp/fullcalendar/fullcalendar.min.js' %}"></script>
-		
+		<script type='text/javascript' src="{% static 'staffRosterApp/fullcalendar/fullcalendar.min.js' %}"></script>
+		<script type='text/javascript' src="{% static 'staffRosterApp/jquery.easy-confirm-dialog.js' %}"></script>
+
+
+
+
 
 
 		<script>
 			$(document).ready(function() {
 			// Security block to prevent cross site forgery
+			
+			
 		 $(function () {
 
 				csrftoken =  document.getElementsByName('csrfmiddlewaretoken')[0].value;
@@ -37,9 +45,7 @@
 						return new Date().getTime() + Math.floor(Math.random()) * 100;
 					}
 					
-					function testCall(){
-						alert('test call from resize event worked!');
-					}
+					
 					
 					
 					
@@ -48,8 +54,7 @@
 						defaultEventDuration = 3600
 						// retrieve the dropped element's stored Event Object
 						var EventObject = $('#'+elementName).data('eventObject');
-
-						EventObject.eventid = getUniqueId();
+						EventObject.eventId = getUniqueId();
 						// we need to copy it, so that multiple events don't have a reference to the same object
 						var copiedEventObject = $.extend({}, EventObject);		
 								
@@ -59,50 +64,71 @@
 						//getTime returns milliseconds so we divide by 1000 to get seconds				
 					 	copiedEventObject.end= ((date.getTime() /1000) + defaultEventDuration); // put your desired end time here
 						copiedEventObject.allDay = false;  // No requirement for all day events 
-						copiedEventObject.eventid = EventObject.eventid
+						copiedEventObject.eventId = EventObject.eventId
 						
 						// render the event on the calendar
 						// the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
-						$('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+						$('#calendar').fullCalendar('renderEvent', copiedEventObject);
+							//Check if we are updating staff availability OR an actual shift
 
-						alert('date format for drop function is end ' + copiedEventObject.end + '  start ' + copiedEventObject.start)
-				
+	    					copiedEventObject.availabilityType = false;
+	
+
 						//Post to server to create shift in DB
 						$.ajax({
 							type : "POST",
-							url : "/roster/updateRoster/",											
+							url : "/roster/createShift/",											
 							data : {title :copiedEventObject.title ,
 									start : copiedEventObject.start ,
 									end : copiedEventObject.end ,
 									firstname : copiedEventObject.firstName ,
 									lastname  :  copiedEventObject.lastName,
-									eventid: copiedEventObject.eventid},
-								
-
+									eventId: copiedEventObject.eventId,
+									availabilityType: copiedEventObject.availabilityType
+									},
 							success : function(data) {
-								alert('ajax success - updating roster on drop');
 							},
 							error : function(XMLHttpRequest, textStatus, errorThrown) {
 								alert("Error updating roster, Please contact site admin - Ajax error:" + errorThrown);
 							}, 
-						});				
+						});
+										
+				
 					}
+					
+					function processClickDeleteShift(eventId){
+						$.ajax({
+							type : "POST",
+							url : "/roster/deleteShift/",											
+							data : {eventId: eventId},					
+
+							success : function(data) {
+								$('#calendar').fullCalendar('refetchEvents');
+								$('#calendar').fullCalendar( 'rerenderEvents' );
+							},
+							error : function(XMLHttpRequest, textStatus, errorThrown) {
+								alert("Error deleting shift, Please contact site admin - Ajax error:" + errorThrown);
+							}, 
+						});				
+						
+					;
+
+
+					};
 					
 					function processEventResizeOrDrop(event){
 						var EventObject = event;
 						
-						alert('resize function event id is ' + EventObject.eventid);
-						alert('date format for resize function is end ' + EventObject.end + '  start ' + EventObject.start)
-
 						$.ajax({
 							type : "POST",
-							url : "/roster/updateRoster/",											
+							url : "/roster/editShift/",											
 							data : {start : EventObject.start ,
 									end : EventObject.end ,
-									eventid: EventObject.eventid},							
+									eventId: EventObject.eventId},							
 
 							success : function(data) {
-								alert('ajax success - Editing roster on resize or drop ');
+
+
 							},
 							error : function(XMLHttpRequest, textStatus, errorThrown) {
 								alert("Error updating roster, Please contact site admin - Ajax error:" + errorThrown);
@@ -124,9 +150,14 @@
 					// it doesn't need to have a start or end
 					var eventObject = {
 						title : $.trim($(this).text()) , // use the element's text as the event title
+						color :  $(this).attr('eventColor'),				
+						title : $.trim($(this).text()) , // use the element's text as the event title
 						firstName : $(this).attr('firstName'),
 						lastName : $(this).attr('lastName'),
+
+						availabilityType : 0 , // Default to shift type - this is changed as needed in processDropCallback 
 					};
+
 
 					// store the Event Object in the DOM element so we can get to it later
 					$(this).data('eventObject', eventObject);
@@ -145,115 +176,102 @@
 				
 			 
 				$('#calendar').fullCalendar({
+				{% if rosterType == "shift" %}	
 				    events: '/roster/jsonfeed/',
+			    {% elif rosterType == "availability" %}
+					events: '/roster/availabilityJsonFeed/',
+				{% endif %}
 					header : {
 						left : 'prev,next today',
 						center : 'title',
 						right : 'agendaWeek,agendaDay'
 					},
 					defaultView : 'agendaWeek',
-					{% if security == 'manager' %}
+					{% if access == 'edit' %}
 						editable : true,
 						droppable : true, // this allows things to be dropped onto the calendar !!!
-					{% endif %}
+		    		{% endif %}
 
 
 
 						/* On item drop*/
 					drop: function(date, allDay) { elementName =$(this).attr('id');
-						alert ("ID " +elementName);
 						processDropCallback(date,allDay,elementName);},
 					//End Drop callback
 					eventResize: function(event) { processEventResizeOrDrop(event) } ,
 					eventDrop: function(event) { processEventResizeOrDrop(event) } ,
+					// Event render function is used to add new propertyies to the event object
+					// It gets the new element data from the json feed by name eg eventId
+					// and stores it in a variable of your choice eg event.myVar					
+					eventRender: function(event, element) {
+						element.attr("eventId",event.eventId) ;
+						//This element sets the tooltip todisplay
+						element.attr("title", "Click me for more options");
+
+						},
+						
+						//Only allow delete popup if edit access	
+						{% if access == 'edit' %}
+							eventClick: function(calEvent, jsEvent, view) {
+							var bConfirm = confirm("Delete this shift?");
+							if (bConfirm == true) 
+							{
+								processClickDeleteShift(calEvent.eventId);
+							}  
+							}
+				        {% endif %}
 				});
 
 			});
 
 		</script>
 		<style>
-			body {
-				margin-top: 40px;
-				text-align: center;
-				font-size: 14px;
-				font-family: "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
-			}
 
-			#wrap {
-				width: 1100px;
-				margin: 0 auto;
-			}
-
-			#external-events {
-				float: left;
-				width: 150px;
-				padding: 0 10px;
-				border: 1px solid #ccc;
-				background: #eee;
-				text-align: left;
-			}
-
-			#external-events h4 {
-				font-size: 16px;
-				margin-top: 0;
-				padding-top: 1em;
-			}
-
-			.external-event {/* try to mimick the look of a real event */
-				margin: 10px 0;
-				padding: 2px 4px;
-				background: #3366CC;
-				color: #fff;
-				font-size: .85em;
-				cursor: pointer;
-			}
-
-			#external-events p {
-				margin: 1.5em 0;
-				font-size: 11px;
-				color: #666;
-			}
-
-			#external-events p input {
-				margin: 0;
-				vertical-align: middle;
-			}
-
-			#calendar {
-				float: right;
-				width: 900px;
-			}
 
 		</style>
 	</head>
 
 	<body>
 		<div id='wrap'>
-			<h1>Security level: {{ security }}</h1>
+			<h1>Manager flag: {{ manager }}</h1>
 			<div id='external-events'>
 			{% if employees %}
-				{% if security == 'manager' %}
+<!-- Managers and staff view should have slightly different text as managers see all staff and their shifts
+while staff see only their own shifts and availability -->
+				{% if manager == True %}
+					<h3 style="text-align:center"> Employees</h3>
 					{% for employee in employees %}
-	    				<div id={{employee.firstName}}{{employee.lastName}} class='external-event' firstName = {{employee.firstName}} lastName = {{employee.lastName}} >
+	    				<div eventColor = {{employee.color}} style={{styleString}}{{employee.color}}  id={{employee.firstName}}{{employee.lastName}} class='external-event' firstName = {{employee.firstName}} lastName = {{employee.lastName}} >
 							{{employee.firstName}} {{employee.lastName}}
 						</div>
 					{% endfor %}
 				{% endif %}
-				{% if security == 'staffMember' %}
-					<div id={{employees.firstName}}{{employees.lastName}} class='external-event' firstName = {{employees.firstName}} lastName = {{employees.lastName}} >
-						{{employees.firstName}} {{employees.lastName}}
-					</div>
+				{% if manager == False %}
+				<!-- Make the shift roster view and availability roster visually distinct to prevent confusion -->
+					{% if rosterType == "availability" %}															
+						<h3 style="text-align:center"> My Availability</h3>
+						<div eventColor = "blue" style= background-color:'blue'  id={{employees.firstName}}{{employees.lastName}} class='external-event' firstName = {{employees.firstName}} lastName = {{employees.lastName}} >
+							Available
+						</div>
+					{% elif rosterType == "shift" %}
+						<h3 style="text-align:center"> My Shifts</h3>
+						<div eventColor = {{employees.color}} style={{styleString}}{{employees.color}}  id={{employees.firstName}}{{employees.lastName}} class='external-event' firstName = {{employees.firstName}} lastName = {{employees.lastName}} >
+							{{employees.firstName}} {{employees.lastName}}
+						</div>
+					{% endif %}
+
+
+					<p style="font-size:medium">View:<br/> <a href="/roster/view">My shifts</a><br/><a href="/roster/viewAvailabity">My availability</a></p>
 				{% endif %}
 				
 			{% else %}
-   			 <h1>No employees available<h1>
+   			 <h1>No employees available</h1>
 			{% endif %}
 
 			</div>
 			{% csrf_token %}
 			<div id='calendar'></div>
 
-			<!-- <div style='clear:both'></div> -->
-		</div>
+
 	</body>
 </html>

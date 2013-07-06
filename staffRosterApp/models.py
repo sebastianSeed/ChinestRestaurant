@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from colorful.fields import RGBColorField
 
 # Create your models here.
 
@@ -21,10 +22,9 @@ class Employee(models.Model):
                                       default= 'Casual',
                                       verbose_name="Employee status")
     manager   = models.BooleanField()
+    color = RGBColorField(unique = True)
     class Meta:
         unique_together = (("firstName", "lastName"),)
-
-
 
 
 class CalendarShift(models.Model):
@@ -36,6 +36,11 @@ class CalendarShift(models.Model):
     allDay              = models.BooleanField()
     start               = models.CharField(max_length=35)
     end                 = models.CharField(max_length=35)
+    color               = RGBColorField()
+    # AvailabilityType is True if this is a record of staff availability OR False if it is a rostered shift
+    availabilityType    = models.BooleanField()
 
+
+    
 
   
