@@ -133,7 +133,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'staffRosterApp',
     'menuApp',
-    'onlineOrderingApp',
     'feedbackApp',
     'tableBookingApp',
     # Uncomment the next line to enable the admin:

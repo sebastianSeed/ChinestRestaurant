@@ -8,7 +8,6 @@ class menuItem(models.Model):
     description = models.CharField(max_length=200)
     price       = models.DecimalField(max_digits=8, decimal_places=2)
     image       = models.ImageField(upload_to='foodPhotos')
-    category    = models.ForeignKey ('')
     
     
 #Used to track online orders

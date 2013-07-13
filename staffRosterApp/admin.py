@@ -7,7 +7,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from staffRosterApp.models import *    
 from menuApp.models import menuItem
-from onlineOrderingApp.models import OnlineOrder,OrderItem
 
 
 

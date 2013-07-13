@@ -17,4 +17,6 @@ urlpatterns = patterns('',
     
     #Include each apps URLS here
     url(r'^roster/', include('staffRosterApp.urls')),
+ #   url(r'^menu/', include('menuApp.urls')),
+
 )
