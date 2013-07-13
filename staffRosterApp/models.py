@@ -29,7 +29,7 @@ class Employee(models.Model):
 
 class CalendarShift(models.Model):
     eventId             = models.BigIntegerField()
-    #One shift can belong to one employee i.e. no sharing shifts
+    # many to one relationship - many shifts can belong to 1 employee
     employee            = models.ForeignKey(Employee, related_name = 'employeeShift')
     #human readable title object - populated with user first and last name by view
     title               = models.CharField(max_length=40)

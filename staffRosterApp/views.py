@@ -154,7 +154,7 @@ def rosterJsonFeed (request):
     employeeDetails = currentUser.employee
     #If maanger display all shifts
     if employeeDetails.manager == True:
-        shifts = CalendarShift.objects.all()   
+        shifts = CalendarShift.objects.all.filter(availabilityType = False)
     #if normal staff ie not manager only display their shifts    
     else:
         shifts = CalendarShift.objects.filter(employee = employeeDetails.id,  availabilityType = False)    
@@ -171,7 +171,11 @@ def availabilityJsonFeed (request):
     #Note we defer 'colors' field at the end i.e. we exclude it from results 
     #This is to allow us to show all availability shifts as blue in fullCalendar to help user distinguish
     #Shifts vs availability
-    shifts = CalendarShift.objects.filter(employee = employeeDetails.id, availabilityType = True)
+    if employeeDetails.manager == True:
+        shifts = CalendarShift.objects.all.filter(availabilityType = True)
+    #if normal staff ie not manager only display their availability    
+    else:
+        shifts = CalendarShift.objects.filter(employee = employeeDetails.id,  availabilityType = True) 
     #Serialize shifts to json feed for fullCalendar Jquery plugin 
     serializerObj = CleanSerializer()
     jsonObj = serializerObj.serialize(shifts)
