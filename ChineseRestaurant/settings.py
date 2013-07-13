@@ -118,11 +118,13 @@ ROOT_URLCONF = 'ChineseRestaurant.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'ChineseRestaurant.wsgi.application'
 
-TEMPLATE_DIRS = (
+#Tell Django to look for project wide templates here
+TEMPLATE_DIRS = [os.path.join(SITE_ROOT, 'templates')]
+# (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-)
+#)
 
 INSTALLED_APPS = (
     'django.contrib.auth',

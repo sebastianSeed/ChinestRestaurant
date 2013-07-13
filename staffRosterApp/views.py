@@ -1,19 +1,10 @@
 # Create your views here.
 from django.http import HttpResponseServerError, HttpResponse
 from django.template import RequestContext, loader
-from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
-from django.core.context_processors import request
-from django.contrib.auth.models import User
-from django.utils import simplejson
-#unique identifier import
-import uuid
-# # Custom serializer
-from django.core.serializers import json
-from django.core import serializers
-from django.core.serializers.json import Serializer, DjangoJSONEncoder
+from django.core.serializers.json import Serializer
+
 from staffRosterApp.models import *
-from compiler.ast import TryExcept
 
 # Customer serializer function to get JSON feed into format we need
 # for full calendarJquery plugin
@@ -49,13 +40,22 @@ def availabilityRoster(request):
 # if they are managers redirect to adminRoster 
 @login_required
 def roster(request):
-    currentUser = request.user       
-    employeeDetails = currentUser.employee
-    if employeeDetails.manager == True:
+    currentUser = request.user  
+    # Protect against error where superuse logs on
+    # as super users are not employees they do not have linked employee details
+    #treat them as manager
+    if request.user.is_superuser == True:
         response = adminRoster(request)
+        return response
+    #user is not superuser - normal processing
     else:
-        response = staffRoster(request,employeeDetails)
-    return response       
+        employeeDetails = currentUser.employee
+    
+        if employeeDetails.manager == True:
+            response = adminRoster(request)
+        else:
+            response = staffRoster(request,employeeDetails)
+        return response       
      
 #Display read only roster with just staff members details
 def staffRoster(request , employeeObj):
@@ -164,6 +164,7 @@ def rosterJsonFeed (request):
     jsonObj = serializerObj.serialize(shifts)
     return HttpResponse(jsonObj, mimetype='application/json')
 
+@login_required     
 def availabilityJsonFeed (request):
     # Get shifts for current user
     currentUser = request.user       

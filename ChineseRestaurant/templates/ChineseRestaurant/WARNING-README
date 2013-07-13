@@ -1,0 +1,4 @@
+Warning
+
+These templates are project wide instead of app wide - all views from any app will look here first
+if you have a template with conflicting name it can load it.

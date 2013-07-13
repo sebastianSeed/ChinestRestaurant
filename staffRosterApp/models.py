@@ -23,6 +23,7 @@ class Employee(models.Model):
                                       verbose_name="Employee status")
     manager   = models.BooleanField()
     color = RGBColorField(unique = True)
+    
     class Meta:
         unique_together = (("firstName", "lastName"),)
 

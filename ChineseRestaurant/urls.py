@@ -6,7 +6,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'ChinestRestaurant.views.home', name='home'),
+    url(r'^$', 'ChineseRestaurant.views.home', name='home'),
     # url(r'^ChinestRestaurant/', include('ChinestRestaurant.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
@@ -17,6 +17,6 @@ urlpatterns = patterns('',
     
     #Include each apps URLS here
     url(r'^roster/', include('staffRosterApp.urls')),
- #   url(r'^menu/', include('menuApp.urls')),
+    url(r'^menu/', include('menuApp.urls')),
 
 )

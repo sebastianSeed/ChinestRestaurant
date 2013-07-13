@@ -1,0 +1,6 @@
+Editing admin templates is fairly simple
+Just copy them from the django directory eg C:\Python27\Lib\site-packages\django\contrib\admin\templates
+to the project template directory (where this readme is) -- django looks here first for templates so changes here
+override other templates.
+
+This is the same for any django template

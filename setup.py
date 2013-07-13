@@ -1,13 +1,14 @@
-#!/usr/bin/env python
-
+import os
 from setuptools import setup
 
+
+# allow setup.py to be run from any path
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
-    name='YourAppName',
-    version='1.0',
-    description='OpenShift App',
-    author='Your Name',
-    author_email='example@example.com',
-    url='http://www.python.org/sigs/distutils-sig/',
+    name='SpringGardensRestaurant',
+    version='0.1',
+    description='CIT Project delivered 2013',
+    author='S seed , P truong , S Huynh',
+    author_email='',
     install_requires=['Django<=1.4'],
 )
