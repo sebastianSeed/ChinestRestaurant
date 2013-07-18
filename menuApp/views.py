@@ -2,13 +2,15 @@
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.contrib.auth.decorators import login_required
-from menuApp.models import OnlineOrder
+from menuApp.models import OnlineOrder, menuItem
 
 
 # Create your views here.
 def customerMenuView(request):
-    template     = loader.get_template('menuApp/menuOrder.html') 
+    template     = loader.get_template('menuApp/menuOrder.html')
+    menuItems    = menuItem.objects.all()
     context      = RequestContext(request, {
+            'menuItems':menuItems
         
     })
  

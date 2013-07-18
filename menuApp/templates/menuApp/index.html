@@ -1,0 +1,177 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Drag and drop shopping cart with jQuery UI</title>
+    <link rel="stylesheet" href="main.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="jquery-ui-1.9.0.custom.min.js"></script>
+</head>
+<body>
+
+
+<div class="container">
+
+	<section id="header" style="margin-bottom: 50px;"><h3>Back to the WebResourcesDepot article: <a href="http://www.webresourcesdepot.com/drag-n-drop-shopping-cart-with-jquery-ui-tutorial/">Drag ‘n’ Drop Shopping Cart With jQuery UI (Tutorial)</a><h3></section>
+
+    <section id="product">
+        <ul class="clear">
+            <li data-id="1">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/1/" alt="">
+                    <h3>iPad 32gb retina screen</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="2">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/2/" alt="">
+            		<h3>Turntable mixer</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="3">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/3/" alt="">
+            		<h3>IBM 15" super-fast computer</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="4">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/4/" alt="">
+            		<h3>Some crazy circuit</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="5">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/5/" alt="">
+                    <h3>White earpieces</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="6">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/6/" alt="">
+            		<h3>Headphones with free keyboard</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="7">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/7/" alt="">
+            		<h3>iPhone 4S</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+            <li data-id="8">
+                <a href="#">
+                    <img src="http://lorempixel.com/150/100/technics/8/" alt="">
+            		<h3>Another crazy circuit or..</h3>
+                    <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+                </a>
+            </li>
+        </ul>
+  </section>
+
+
+    <aside id="sidebar">
+        <div class="basket">
+            <div class="basket_list">
+                <div class="head">
+                    <span class="name">Product name</span>
+                    <span class="count">Quantity</span>
+                </div>
+                <ul>
+                    <!--li>
+                        <span class="name">Samsung S3 asd asdasdaf dfsdghgfg dgfg</span>
+                        <input class="count" value="1" type="text">
+                        <button class="delete">&#10005;</button>
+                    </li-->
+                </ul>
+            </div>
+        </div>
+        
+        <div id="sponsor" style="margin-top: 20px;">
+        	<a href="http://www.sslmatic.com/"><img src="sslmatic-220px.jpg" alt="Cheap SSL Certificates" width="220" height="114" style="border: 2px solid #fff; padding:0;" /></a>
+        </div>
+
+    </aside>
+</div>
+
+<script>
+    $(function () {
+
+		// jQuery UI Draggable
+		$("#product li").draggable({
+		
+			// brings the item back to its place when dragging is over
+			revert:true,
+		
+			// once the dragging starts, we decrease the opactiy of other items
+			// Appending a class as we do that with CSS
+			drag:function () {
+				$(this).addClass("active");
+				$(this).closest("#product").addClass("active");
+			},
+		
+			// removing the CSS classes once dragging is over.
+			stop:function () {
+				$(this).removeClass("active").closest("#product").removeClass("active");
+			}
+		});
+
+        // jQuery Ui Droppable
+		$(".basket").droppable({
+		
+			// The class that will be appended to the to-be-dropped-element (basket)
+			activeClass:"active",
+		
+			// The class that will be appended once we are hovering the to-be-dropped-element (basket)
+			hoverClass:"hover",
+		
+			// The acceptance of the item once it touches the to-be-dropped-element basket
+			// For different values http://api.jqueryui.com/droppable/#option-tolerance
+			tolerance:"touch",
+			drop:function (event, ui) {
+		
+				var basket = $(this),
+						move = ui.draggable,
+						itemId = basket.find("ul li[data-id='" + move.attr("data-id") + "']");
+		
+				// To increase the value by +1 if the same item is already in the basket
+				if (itemId.html() != null) {
+					itemId.find("input").val(parseInt(itemId.find("input").val()) + 1);
+				}
+				else {
+					// Add the dragged item to the basket
+					addBasket(basket, move);
+		
+					// Updating the quantity by +1" rather than adding it to the basket
+					move.find("input").val(parseInt(move.find("input").val()) + 1);
+				}
+			}
+		});
+
+        // This function runs onc ean item is added to the basket
+        function addBasket(basket, move) {
+			basket.find("ul").append('<li data-id="' + move.attr("data-id") + '">'
+					+ '<span class="name">' + move.find("h3").html() + '</span>'
+					+ '<input class="count" value="1" type="text">'
+					+ '<button class="delete">&#10005;</button>');
+		}
+
+
+        // The function that is triggered once delete button is pressed
+        $(".basket ul li button.delete").live("click", function () {
+			$(this).closest("li").remove();
+		});
+
+    });
+</script>
+
+
+</body>
+</html>

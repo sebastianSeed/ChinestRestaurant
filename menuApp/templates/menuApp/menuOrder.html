@@ -1,37 +1,141 @@
+<!doctype html>
+
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>jQuery UI Tabs - Default functionality</title>
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
-  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-  <link rel="stylesheet" href="/resources/demos/style.css" />
-  <script>
-  $(function() {
-    $( "#tabs" ).tabs();
-  });
-  </script>
-</head>
-<body>
- 
-<div id="tabs">
-  <ul>
-    <li><a href="#tabs-1">Nunc tincidunt</a></li>
-    <li><a href="#tabs-2">Proin dolor</a></li>
-    <li><a href="#tabs-3">Aenean lacinia</a></li>
-  </ul>
-  <div id="tabs-1">
-    <p>Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.</p>
-  </div>
-  <div id="tabs-2">
-    <p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra massa metus id nunc. Duis scelerisque molestie turpis. Sed fringilla, massa eget luctus malesuada, metus eros molestie lectus, ut tempus eros massa ut dolor. Aenean aliquet fringilla sem. Suspendisse sed ligula in ligula suscipit aliquam. Praesent in eros vestibulum mi adipiscing adipiscing. Morbi facilisis. Curabitur ornare consequat nunc. Aenean vel metus. Ut posuere viverra nulla. Aliquam erat volutpat. Pellentesque convallis. Maecenas feugiat, tellus pellentesque pretium posuere, felis lorem euismod felis, eu ornare leo nisi vel felis. Mauris consectetur tortor et purus.</p>
-  </div>
-  <div id="tabs-3">
-    <p>Mauris eleifend est et turpis. Duis id erat. Suspendisse potenti. Aliquam vulputate, pede vel vehicula accumsan, mi neque rutrum erat, eu congue orci lorem eget lorem. Vestibulum non ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce sodales. Quisque eu urna vel enim commodo pellentesque. Praesent eu risus hendrerit ligula tempus pretium. Curabitur lorem enim, pretium nec, feugiat nec, luctus a, lacus.</p>
-    <p>Duis cursus. Maecenas ligula eros, blandit nec, pharetra at, semper at, magna. Nullam ac lacus. Nulla facilisi. Praesent viverra justo vitae neque. Praesent blandit adipiscing velit. Suspendisse potenti. Donec mattis, pede vel pharetra blandit, magna ligula faucibus eros, id euismod lacus dolor eget odio. Nam scelerisque. Donec non libero sed nulla mattis commodo. Ut sagittis. Donec nisi lectus, feugiat porttitor, tempor ac, tempor vitae, pede. Aenean vehicula velit eu tellus interdum rutrum. Maecenas commodo. Pellentesque nec elit. Fusce in lacus. Vivamus a libero vitae lectus hendrerit hendrerit.</p>
-  </div>
-</div>
- 
- 
-</body>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Menu - Order </title>
+		{% load staticfiles %}
+		<link rel="stylesheet" href="{% static 'menuApp/main.css' %}">
+
+		<script type='text/javascript' src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script src="{% static 'menuApp/jquery/jquery-ui-1.9.0.custom.min.js' %}"></script>
+	</head>
+	<body>
+	<!-- Code for script and page layout has been modified from code provided on the http://www.webresourcesdepot.com/drag-n-drop-shopping-cart-with-jquery-ui-tutorial/ -->
+		<div class="container">
+
+			<section id="header" style="margin-bottom: 50px;">
+				<h3>Prettify me -  useful doco here: <a href="http://www.webresourcesdepot.com/drag-n-drop-shopping-cart-with-jquery-ui-tutorial/">Drag ‘n’ Drop Shopping Cart With jQuery UI (Tutorial)</a><h3>
+			</section>
+
+			<section id="product">
+				<ul class="clear">
+					{% for menuItem in menuItems %}
+					<li  data-id={{menuItem.name}}>
+						<a href="#"> 
+							<img src="{{menuItem.image.url}}" width="100" height="100"> <h3> {{menuItem.name}}</h3>
+							<p>{{menuItem.description}}	</p>
+						 </a>
+					</li>
+					{% endfor %}
+					
+				</ul>
+			</section>
+
+			<aside id="sidebar">
+				<div class="basket">
+					<div class="basket_list">
+						<div class="head">
+							<span class="name">Product name</span>
+							<span class="count">Quantity</span>
+						</div>
+						<ul>
+
+						</ul>
+						
+						<button id="submitButton"> Submit Order</button>
+					</div>
+	
+				</div>
+
+
+
+			</aside>
+		</div>
+
+		<script>
+			$(function() {
+
+				// jQuery UI Draggable
+				$("#product li").draggable({
+
+					// brings the item back to its place when dragging is over
+					revert : true,
+
+					// once the dragging starts, we decrease the opactiy of other items
+					// Appending a class as we do that with CSS
+					drag : function() {
+						$(this).addClass("active");
+						$(this).closest("#product").addClass("active");
+					},
+
+					// removing the CSS classes once dragging is over.
+					stop : function() {
+						$(this).removeClass("active").closest("#product").removeClass("active");
+					}
+				});
+
+				// jQuery Ui Droppable
+				$(".basket").droppable({
+
+					// The class that will be appended to the to-be-dropped-element (basket)
+					activeClass : "active",
+
+					// The class that will be appended once we are hovering the to-be-dropped-element (basket)
+					hoverClass : "hover",
+
+					// The acceptance of the item once it touches the to-be-dropped-element basket
+					// For different values http://api.jqueryui.com/droppable/#option-tolerance
+					tolerance : "touch",
+					drop : function(event, ui) {
+
+						var basket = $(this), move = ui.draggable, itemId = basket.find("ul li[data-id='" + move.attr("data-id") + "']");
+
+						// To increase the value by +1 if the same item is already in the basket
+						if (itemId.html() != null) {
+							itemId.find("input").val(parseInt(itemId.find("input").val()) + 1);
+						} else {
+							// Add the dragged item to the basket
+							addBasket(basket, move);
+
+							// Updating the quantity by +1" rather than adding it to the basket
+							move.find("input").val(parseInt(move.find("input").val()) + 1);
+						}
+					}
+				});
+
+				// This function runs onc ean item is added to the basket
+				function addBasket(basket, move) {
+					basket.find("ul").append('<li data-id="' + move.attr("data-id") + '">' + '<span class="name">' + move.find("h3").html() + '</span>' + '<input class="count" value="1" type="text">' + '<button class="delete">&#10005;</button>');
+				}
+				
+		
+
+				// The function that is triggered once delete button is pressed
+				$(".basket ul li button.delete").live("click", function() {
+					$(this).closest("li").remove();
+				});
+				
+				//Submit order on cking submit btn
+				$("#submitButton").on("click", function(event){
+					var order = {};
+					// Find the basket list div and any li items underneath it
+  					$('div.basket_list').find('li').each(
+  						function()
+  						{
+  							var itemName = $(this).attr('data-id');
+  							var itemCount = $('.count',this).attr('value');
+  							order[itemName] =  itemCount;
+  							alert('Debug Added ' + itemName);
+  							alert('Debug Count is ' + (order[itemName]) );
+  						}
+  					);
+  					  	
+
+				});
+
+			});
+		</script>
+
+	</body>
 </html>

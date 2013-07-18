@@ -8,7 +8,7 @@ class menuCategory(models.Model):
 
 #Used to generate menu view for customers
 class menuItem(models.Model):
-    name        = models.CharField(max_length=60)
+    name        = models.CharField(max_length=60, unique=True)
     description = models.CharField(max_length=200)
     price       = models.DecimalField(max_digits=8, decimal_places=2)
     image       = models.ImageField(upload_to='foodPhotos')
